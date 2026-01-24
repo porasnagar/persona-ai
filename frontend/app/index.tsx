@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import GlowingOrb from '../components/GlowingOrb';
 import GlassButton from '../components/GlassButton';
-import { colors, spacing, typography } from '../constants/theme';
+import { colors, spacing, typography, borderRadius } from '../constants/theme';
 
 export default function WelcomeScreen() {
   const router = useRouter();
