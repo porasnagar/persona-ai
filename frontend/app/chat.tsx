@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import ChatBubble from '../components/ChatBubble';
 import GlassInput from '../components/GlassInput';
+import PersonaToggle from '../components/PersonaToggle';
 import { colors, spacing, typography } from '../constants/theme';
 
 interface Message {
@@ -24,7 +25,22 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
+  is_introduction?: boolean;
 }
+
+interface Persona {
+  id: string;
+  name: string;
+  description: string;
+  introduction: string;
+}
+
+const PERSONAS: Persona[] = [
+  { id: 'AURA', name: 'AURA', description: 'Emotional Well-being', introduction: '' },
+  { id: 'SERENE', name: 'SERENE', description: 'Mindfulness & Calm', introduction: '' },
+  { id: 'NOVA', name: 'NOVA', description: 'Motivation & Growth', introduction: '' },
+  { id: 'REFLECT', name: 'REFLECT', description: 'Self-Reflection', introduction: '' },
+];
 
 export default function ChatScreen() {
   const router = useRouter();
@@ -32,20 +48,77 @@ export default function ChatScreen() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [activePersona, setActivePersona] = useState('AURA');
+  const [showPersonaToggle, setShowPersonaToggle] = useState(true);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const BACKEND_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:8001';
 
-  // Initial AI greeting
+  // Initialize new conversation with selected persona
   useEffect(() => {
-    const greeting: Message = {
-      id: '1',
-      role: 'assistant',
-      content: 'Hello. I\'m here to listen and support you. What\'s on your mind today?',
-      timestamp: new Date().toISOString(),
-    };
-    setMessages([greeting]);
+    initializeConversation(activePersona);
   }, []);
+
+  const initializeConversation = async (persona: string) => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/chat/new?persona=${persona}`);
+      const data = await response.json();
+      
+      setConversationId(data.conversation_id);
+      
+      // Add introduction message
+      const introMessage: Message = {
+        id: '1',
+        role: 'assistant',
+        content: data.introduction,
+        timestamp: new Date().toISOString(),
+        is_introduction: true,
+      };
+      setMessages([introMessage]);
+    } catch (error) {
+      console.error('Error initializing conversation:', error);
+      // Fallback introduction
+      const introMessage: Message = {
+        id: '1',
+        role: 'assistant',
+        content: `I'm ${persona}. How can I support you today?`,
+        timestamp: new Date().toISOString(),
+        is_introduction: true,
+      };
+      setMessages([introMessage]);
+    }
+  };
+
+  const handlePersonaChange = (newPersona: string) => {
+    if (newPersona === activePersona) return;
+
+    // If there are messages beyond introduction, confirm persona change
+    const hasConversation = messages.filter(m => !m.is_introduction && m.role === 'user').length > 0;
+    
+    if (hasConversation) {
+      Alert.alert(
+        'Switch Persona',
+        'Changing personas will start a new conversation. Continue?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Start New Chat',
+            onPress: () => {
+              setActivePersona(newPersona);
+              setMessages([]);
+              setConversationId(null);
+              initializeConversation(newPersona);
+            },
+          },
+        ]
+      );
+    } else {
+      setActivePersona(newPersona);
+      setMessages([]);
+      setConversationId(null);
+      initializeConversation(newPersona);
+    }
+  };
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -60,6 +133,7 @@ export default function ChatScreen() {
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
+    setShowPersonaToggle(false); // Hide toggle once conversation starts
 
     setTimeout(() => {
       scrollViewRef.current?.scrollToEnd({ animated: true });
@@ -74,6 +148,7 @@ export default function ChatScreen() {
         body: JSON.stringify({
           message: userMessage.content,
           conversation_id: conversationId,
+          persona: activePersona,
         }),
       });
 
@@ -127,7 +202,6 @@ export default function ChatScreen() {
   };
 
   const handleCopy = (text: string) => {
-    // In a real app, you'd use Clipboard API here
     console.log('Copied:', text);
   };
 
@@ -154,10 +228,24 @@ export default function ChatScreen() {
             <View style={styles.headerAvatar}>
               <View style={styles.headerAvatarInner} />
             </View>
-            <Text style={styles.headerTitle}>Calm Companion</Text>
+            <View>
+              <Text style={styles.headerTitle}>Calm Companion</Text>
+              <Text style={styles.headerSubtitle}>{activePersona}</Text>
+            </View>
           </View>
           <View style={styles.headerRight} />
         </View>
+
+        {/* Persona Toggle - Shows only at conversation start */}
+        {showPersonaToggle && (
+          <View style={styles.personaContainer}>
+            <PersonaToggle
+              personas={PERSONAS}
+              activePersona={activePersona}
+              onPersonaChange={handlePersonaChange}
+            />
+          </View>
+        )}
 
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -258,8 +346,21 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     fontWeight: '500',
   },
+  headerSubtitle: {
+    ...typography.small,
+    color: colors.text.tertiary,
+    fontSize: 11,
+    marginTop: 2,
+  },
   headerRight: {
     width: 44,
+  },
+  personaContainer: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.glass.borderSoft,
   },
   keyboardView: {
     flex: 1,
