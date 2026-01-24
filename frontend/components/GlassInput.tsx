@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet, ViewStyle, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '../constants/theme';
 
@@ -20,11 +20,32 @@ export default function GlassInput({
   showMic = false,
   style,
 }: GlassInputProps) {
+  const handleKeyPress = (e: any) => {
+    if (Platform.OS === 'web') {
+      // On web: Enter sends, Shift+Enter adds new line
+      if (e.nativeEvent.key === 'Enter' && !e.nativeEvent.shiftKey) {
+        e.preventDefault();
+        if (value.trim() && onSend) {
+          onSend();
+        }
+      }
+    }
+  };
+
+  const handleSubmitEditing = () => {
+    // On mobile: Enter/Return sends message
+    if (value.trim() && onSend) {
+      onSend();
+    }
+  };
+
+  const canSend = value.trim().length > 0;
+
   return (
     <View style={[styles.container, style]}>
       {showMic && (
         <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
-          <Ionicons name="mic" size={22} color={colors.text.tertiary} />
+          <Ionicons name="mic-outline" size={22} color={colors.text.tertiary} />
         </TouchableOpacity>
       )}
       <TextInput
@@ -33,20 +54,27 @@ export default function GlassInput({
         placeholderTextColor={colors.text.placeholder}
         value={value}
         onChangeText={onChangeText}
-        multiline
+        onKeyPress={handleKeyPress}
+        onSubmitEditing={handleSubmitEditing}
+        multiline={Platform.OS === 'web'}
+        blurOnSubmit={false}
+        returnKeyType="send"
         maxLength={500}
       />
       {onSend && (
         <TouchableOpacity
-          style={[styles.iconButton, value.length > 0 && styles.sendActive]}
+          style={[
+            styles.sendButton,
+            canSend && styles.sendButtonActive,
+          ]}
           onPress={onSend}
           activeOpacity={0.7}
-          disabled={value.length === 0}
+          disabled={!canSend}
         >
           <Ionicons
             name="send"
             size={20}
-            color={value.length > 0 ? colors.primary.purple : colors.text.placeholder}
+            color={canSend ? colors.primary.purple : colors.text.placeholder}
           />
         </TouchableOpacity>
       )}
@@ -72,6 +100,7 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     paddingHorizontal: spacing.sm,
     maxHeight: 100,
+    minHeight: 24,
   },
   iconButton: {
     width: 38,
@@ -80,7 +109,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  sendActive: {
+  sendButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    justifyContent: 'center',
+    alignItems: 'center',
+    transition: 'all 0.2s ease',
+  },
+  sendButtonActive: {
     backgroundColor: colors.glass.medium,
+    shadowColor: colors.primary.purple,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
 });
