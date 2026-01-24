@@ -137,7 +137,7 @@ export default function ChatScreen() {
 
   return (
     <LinearGradient
-      colors={[colors.background.start, colors.background.end]}
+      colors={[colors.background.start, colors.background.mid, colors.background.end]}
       style={styles.container}
     >
       <SafeAreaView style={styles.content} edges={['top']}>
@@ -151,8 +151,10 @@ export default function ChatScreen() {
             <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
           </TouchableOpacity>
           <View style={styles.headerCenter}>
-            <View style={styles.headerAvatar} />
-            <Text style={styles.headerTitle}>AI Assistant</Text>
+            <View style={styles.headerAvatar}>
+              <View style={styles.headerAvatarInner} />
+            </View>
+            <Text style={styles.headerTitle}>Calm Companion</Text>
           </View>
           <View style={styles.headerRight} />
         </View>
@@ -172,17 +174,27 @@ export default function ChatScreen() {
             {messages.map((message, index) => (
               <ChatBubble
                 key={message.id}
-                message={message.text}
-                isAI={message.isAI}
-                showActions={message.isAI && index === messages.length - 1}
+                message={message.content}
+                isAI={message.role === 'assistant'}
+                showActions={message.role === 'assistant' && index === messages.length - 1 && !isLoading}
+                onCopy={() => handleCopy(message.content)}
+                onLike={handleLike}
               />
             ))}
+            {isLoading && (
+              <View style={styles.loadingContainer}>
+                <View style={styles.loadingBubble}>
+                  <ActivityIndicator size="small" color={colors.primary.cyan} />
+                  <Text style={styles.loadingText}>Thinking...</Text>
+                </View>
+              </View>
+            )}
           </ScrollView>
 
           {/* Input Bar */}
           <View style={styles.inputContainer}>
             <GlassInput
-              placeholder="Type a message..."
+              placeholder="Share your thoughts..."
               value={input}
               onChangeText={setInput}
               onSend={handleSend}
