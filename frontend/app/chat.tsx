@@ -338,8 +338,8 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: colors.primary.cyan,
-    opacity: 0.8,
+    backgroundColor: colors.primary.purple,
+    opacity: 0.9,
   },
   headerTitle: {
     ...typography.body,
