@@ -7,9 +7,17 @@ interface ChatBubbleProps {
   message: string;
   isAI: boolean;
   showActions?: boolean;
+  onLike?: () => void;
+  onCopy?: () => void;
 }
 
-export default function ChatBubble({ message, isAI, showActions = false }: ChatBubbleProps) {
+export default function ChatBubble({ 
+  message, 
+  isAI, 
+  showActions = false,
+  onLike,
+  onCopy 
+}: ChatBubbleProps) {
   return (
     <View style={[styles.container, isAI ? styles.aiContainer : styles.userContainer]}>
       {isAI && (
@@ -23,14 +31,11 @@ export default function ChatBubble({ message, isAI, showActions = false }: ChatB
         </View>
         {isAI && showActions && (
           <View style={styles.actions}>
-            <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
-              <Ionicons name="thumbs-up-outline" size={16} color={colors.text.tertiary} />
+            <TouchableOpacity style={styles.actionButton} activeOpacity={0.7} onPress={onLike}>
+              <Ionicons name="heart-outline" size={17} color={colors.text.placeholder} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
-              <Ionicons name="thumbs-down-outline" size={16} color={colors.text.tertiary} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
-              <Ionicons name="copy-outline" size={16} color={colors.text.tertiary} />
+            <TouchableOpacity style={styles.actionButton} activeOpacity={0.7} onPress={onCopy}>
+              <Ionicons name="copy-outline" size={17} color={colors.text.placeholder} />
             </TouchableOpacity>
           </View>
         )}
@@ -52,25 +57,26 @@ const styles = StyleSheet.create({
     paddingLeft: spacing.xl,
   },
   aiAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: colors.glass.light,
     borderWidth: 1,
-    borderColor: colors.primary.cyan,
+    borderColor: colors.ai.glowSoft,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.sm,
-    shadowColor: colors.primary.cyan,
+    shadowColor: colors.ai.glow,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
   },
   avatarInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     backgroundColor: colors.primary.cyan,
+    opacity: 0.8,
   },
   messageContainer: {
     flex: 1,
@@ -78,25 +84,25 @@ const styles = StyleSheet.create({
   bubble: {
     borderRadius: borderRadius.md,
     paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.md + 4,
     borderWidth: 1,
   },
   aiBubble: {
     backgroundColor: colors.ai.message,
-    borderColor: colors.glass.border,
+    borderColor: colors.glass.borderSoft,
     shadowColor: colors.ai.glow,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
   },
   userBubble: {
     backgroundColor: colors.user.message,
-    borderColor: colors.glass.border,
+    borderColor: colors.glass.borderSoft,
   },
   messageText: {
     ...typography.body,
     color: colors.text.primary,
-    lineHeight: 22,
+    lineHeight: 24,
   },
   actions: {
     flexDirection: 'row',
@@ -104,7 +110,7 @@ const styles = StyleSheet.create({
     paddingLeft: spacing.xs,
   },
   actionButton: {
-    marginRight: spacing.md,
+    marginRight: spacing.md + 4,
     padding: spacing.xs,
   },
 });

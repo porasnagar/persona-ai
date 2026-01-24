@@ -10,36 +10,53 @@ interface GlowingOrbProps {
 export default function GlowingOrb({ size = 200 }: GlowingOrbProps) {
   const floatAnim = new Animated.Value(0);
   const pulseAnim = new Animated.Value(1);
+  const glowAnim = new Animated.Value(0.6);
 
   useEffect(() => {
-    // Floating animation
+    // Slower, calmer floating animation
     Animated.loop(
       Animated.sequence([
         Animated.timing(floatAnim, {
           toValue: 1,
-          duration: 3000,
+          duration: 4000,
           useNativeDriver: true,
         }),
         Animated.timing(floatAnim, {
           toValue: 0,
+          duration: 4000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    // Gentle pulse animation
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.08,
+          duration: 3000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
           duration: 3000,
           useNativeDriver: true,
         }),
       ])
     ).start();
 
-    // Pulse animation
+    // Soft glow pulse
     Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.1,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
+        Animated.timing(glowAnim, {
           toValue: 1,
-          duration: 2000,
-          useNativeDriver: true,
+          duration: 2500,
+          useNativeDriver: false,
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 0.6,
+          duration: 2500,
+          useNativeDriver: false,
         }),
       ])
     ).start();
@@ -47,22 +64,22 @@ export default function GlowingOrb({ size = 200 }: GlowingOrbProps) {
 
   const translateY = floatAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, -20],
+    outputRange: [0, -15],
   });
 
   return (
     <View style={[styles.container, { width: size, height: size }]}>
-      {/* Outer glow rings */}
+      {/* Outer glow rings - multiple layers for depth */}
       <Animated.View
         style={[
           styles.glowRing,
           {
-            width: size * 1.6,
-            height: size * 1.6,
-            borderRadius: size * 0.8,
-            opacity: pulseAnim.interpolate({
-              inputRange: [1, 1.1],
-              outputRange: [0.2, 0.1],
+            width: size * 2,
+            height: size * 2,
+            borderRadius: size,
+            opacity: glowAnim.interpolate({
+              inputRange: [0.6, 1],
+              outputRange: [0.08, 0.04],
             }),
             transform: [{ scale: pulseAnim }],
           },
@@ -72,10 +89,22 @@ export default function GlowingOrb({ size = 200 }: GlowingOrbProps) {
         style={[
           styles.glowRing,
           {
-            width: size * 1.3,
-            height: size * 1.3,
-            borderRadius: size * 0.65,
-            opacity: 0.3,
+            width: size * 1.5,
+            height: size * 1.5,
+            borderRadius: size * 0.75,
+            opacity: 0.15,
+            transform: [{ scale: pulseAnim }],
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.glowRing,
+          {
+            width: size * 1.2,
+            height: size * 1.2,
+            borderRadius: size * 0.6,
+            opacity: 0.2,
             transform: [{ scale: pulseAnim }],
           },
         ]}
@@ -95,8 +124,8 @@ export default function GlowingOrb({ size = 200 }: GlowingOrbProps) {
       >
         <LinearGradient
           colors={[colors.primary.cyan, colors.primary.blue, colors.primary.purple]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
+          start={{ x: 0.2, y: 0.2 }}
+          end={{ x: 0.8, y: 0.8 }}
           style={[styles.gradient, { borderRadius: size / 2 }]}
         >
           {/* Inner highlight */}
@@ -104,9 +133,20 @@ export default function GlowingOrb({ size = 200 }: GlowingOrbProps) {
             style={[
               styles.highlight,
               {
-                width: size * 0.4,
-                height: size * 0.4,
-                borderRadius: size * 0.2,
+                width: size * 0.35,
+                height: size * 0.35,
+                borderRadius: size * 0.175,
+              },
+            ]}
+          />
+          {/* Secondary highlight */}
+          <View
+            style={[
+              styles.secondaryHighlight,
+              {
+                width: size * 0.2,
+                height: size * 0.2,
+                borderRadius: size * 0.1,
               },
             ]}
           />
@@ -123,27 +163,32 @@ const styles = StyleSheet.create({
   },
   glowRing: {
     position: 'absolute',
-    backgroundColor: colors.primary.cyan,
-    opacity: 0.2,
+    backgroundColor: colors.primary.glow,
   },
   orb: {
-    shadowColor: colors.primary.cyan,
+    shadowColor: colors.primary.glow,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 30,
-    elevation: 10,
+    shadowOpacity: 0.6,
+    shadowRadius: 40,
+    elevation: 15,
   },
   gradient: {
     width: '100%',
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    opacity: 0.9,
+    opacity: 0.85,
   },
   highlight: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
     position: 'absolute',
-    top: '20%',
-    left: '30%',
+    top: '18%',
+    left: '28%',
+  },
+  secondaryHighlight: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    position: 'absolute',
+    top: '25%',
+    left: '45%',
   },
 });

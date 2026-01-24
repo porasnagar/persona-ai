@@ -12,7 +12,7 @@ export default function TopicChip({ title, onPress }: TopicChipProps) {
     <TouchableOpacity
       style={styles.container}
       onPress={onPress}
-      activeOpacity={0.7}
+      activeOpacity={0.75}
     >
       <Text style={styles.text}>{title}</Text>
     </TouchableOpacity>
@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.glass.light,
     borderRadius: borderRadius.full,
     borderWidth: 1,
-    borderColor: colors.glass.border,
+    borderColor: colors.glass.borderSoft,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
     marginRight: spacing.sm,
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
   },
   text: {
     ...typography.caption,
-    color: colors.text.primary,
+    color: colors.text.secondary,
     fontWeight: '500',
   },
 });

@@ -24,13 +24,13 @@ export default function GlassInput({
     <View style={[styles.container, style]}>
       {showMic && (
         <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
-          <Ionicons name="mic" size={22} color={colors.text.secondary} />
+          <Ionicons name="mic" size={22} color={colors.text.tertiary} />
         </TouchableOpacity>
       )}
       <TextInput
         style={styles.input}
         placeholder={placeholder}
-        placeholderTextColor={colors.text.tertiary}
+        placeholderTextColor={colors.text.placeholder}
         value={value}
         onChangeText={onChangeText}
         multiline
@@ -46,7 +46,7 @@ export default function GlassInput({
           <Ionicons
             name="send"
             size={20}
-            color={value.length > 0 ? colors.primary.cyan : colors.text.tertiary}
+            color={value.length > 0 ? colors.primary.cyan : colors.text.placeholder}
           />
         </TouchableOpacity>
       )}
@@ -59,12 +59,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.glass.light,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.xl,
     borderWidth: 1,
-    borderColor: colors.glass.border,
+    borderColor: colors.glass.borderSoft,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    minHeight: 50,
+    minHeight: 54,
   },
   input: {
     flex: 1,
@@ -74,9 +74,9 @@ const styles = StyleSheet.create({
     maxHeight: 100,
   },
   iconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -20,7 +20,7 @@ export default function GlassButton({
     <TouchableOpacity
       style={[styles.container, style]}
       onPress={onPress}
-      activeOpacity={0.8}
+      activeOpacity={0.85}
     >
       <LinearGradient
         colors={
@@ -40,10 +40,10 @@ export default function GlassButton({
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: borderRadius.md,
+    borderRadius: borderRadius.lg,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: colors.glass.border,
+    borderColor: colors.glass.borderSoft,
   },
   gradient: {
     paddingVertical: spacing.md,
@@ -54,6 +54,6 @@ const styles = StyleSheet.create({
   text: {
     ...typography.body,
     color: colors.text.primary,
-    fontWeight: '600',
+    fontWeight: '500',
   },
 });
