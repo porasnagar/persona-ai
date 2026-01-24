@@ -8,7 +8,7 @@ import GlassInput from '../components/GlassInput';
 import TopicChip from '../components/TopicChip';
 import { colors, spacing, typography } from '../constants/theme';
 
-const topics = ['Cyberpunk', 'Space', 'Movie', 'City'];
+const topics = ['Calm', 'Reflect', 'Focus', 'Gratitude'];
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -22,12 +22,12 @@ export default function HomeScreen() {
 
   const handleTopicPress = (topic: string) => {
     setInput(topic);
-    setTimeout(() => router.push('/chat'), 300);
+    setTimeout(() => router.push('/chat'), 200);
   };
 
   return (
     <LinearGradient
-      colors={[colors.background.start, colors.background.end]}
+      colors={[colors.background.start, colors.background.mid, colors.background.end]}
       style={styles.container}
     >
       <SafeAreaView style={styles.content} edges={['top']}>
@@ -41,13 +41,14 @@ export default function HomeScreen() {
           >
             {/* Large Glowing Orb */}
             <View style={styles.orbContainer}>
-              <GlowingOrb size={280} />
+              <GlowingOrb size={300} />
             </View>
 
             {/* Prompt Text */}
             <View style={styles.promptContainer}>
-              <Text style={styles.promptText}>Ask me anything…</Text>
-              <Text style={styles.promptSubtext}>or choose a topic below</Text>
+              <Text style={styles.promptText}>I'm here.</Text>
+              <Text style={styles.promptText}>Take a breath.</Text>
+              <Text style={styles.promptSubtext}>or choose a path below</Text>
             </View>
 
             {/* Topic Chips */}
@@ -65,7 +66,7 @@ export default function HomeScreen() {
           {/* Bottom Input Bar */}
           <View style={styles.inputContainer}>
             <GlassInput
-              placeholder="Describe a prompt"
+              placeholder="Share what's on your mind..."
               value={input}
               onChangeText={setInput}
               onSend={handleSend}
@@ -90,7 +91,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xxl,
+    paddingTop: spacing.xxxl,
     paddingBottom: spacing.xl,
   },
   orbContainer: {
@@ -106,12 +107,13 @@ const styles = StyleSheet.create({
     ...typography.title,
     color: colors.text.primary,
     textAlign: 'center',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
   },
   promptSubtext: {
     ...typography.caption,
-    color: colors.text.tertiary,
+    color: colors.text.placeholder,
     textAlign: 'center',
+    marginTop: spacing.md,
   },
   topicsContainer: {
     flexDirection: 'row',

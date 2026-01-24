@@ -12,24 +12,25 @@ export default function WelcomeScreen() {
 
   return (
     <LinearGradient
-      colors={[colors.background.start, colors.background.end]}
+      colors={[colors.background.start, colors.background.mid, colors.background.end]}
       style={styles.container}
     >
       <SafeAreaView style={styles.content}>
-        {/* Top spacer */}
+        {/* Top spacer for balance */}
         <View style={styles.topSpacer} />
 
         {/* Centered Glowing Orb */}
         <View style={styles.orbContainer}>
-          <GlowingOrb size={240} />
+          <GlowingOrb size={260} />
         </View>
 
         {/* Title Section */}
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>Your Intelligent</Text>
-          <Text style={styles.title}>AI Companion</Text>
+          <Text style={styles.title}>Your Calm AI</Text>
+          <Text style={styles.title}>Companion</Text>
           <Text style={styles.subtitle}>
-            Experience the future of conversation with your personal AI assistant
+            Find clarity, peace, and happiness{"\n"}
+            through mindful conversation
           </Text>
         </View>
 
@@ -63,7 +64,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
   },
   topSpacer: {
-    flex: 0.5,
+    flex: 0.3,
   },
   orbContainer: {
     alignItems: 'center',
@@ -84,8 +85,8 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.text.secondary,
     textAlign: 'center',
-    marginTop: spacing.md,
-    lineHeight: 24,
+    marginTop: spacing.lg,
+    lineHeight: 26,
   },
   actionsContainer: {
     flex: 1,
@@ -101,7 +102,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   signInText: {
-    ...typography.body,
-    color: colors.text.secondary,
+    ...typography.caption,
+    color: colors.text.tertiary,
   },
 });
