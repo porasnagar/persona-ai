@@ -397,8 +397,8 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm,
   },
   inputContainer: {
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.md,
-    paddingTop: spacing.sm,
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.lg,
+    paddingTop: spacing.md,
   },
 });
