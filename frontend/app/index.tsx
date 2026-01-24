@@ -92,17 +92,24 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     paddingBottom: spacing.xxl,
+    gap: spacing.md,
   },
   primaryButton: {
     width: '100%',
   },
-  signInButton: {
+  secondaryButton: {
+    width: '100%',
     paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.glass.borderSoft,
+    backgroundColor: colors.glass.ultraLight,
     alignItems: 'center',
-    marginTop: spacing.md,
+    justifyContent: 'center',
   },
-  signInText: {
-    ...typography.caption,
-    color: colors.text.tertiary,
+  secondaryButtonText: {
+    ...typography.body,
+    color: colors.text.secondary,
+    fontWeight: '500',
   },
 });
