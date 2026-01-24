@@ -123,7 +123,7 @@ export default function GlowingOrb({ size = 200 }: GlowingOrbProps) {
         ]}
       >
         <LinearGradient
-          colors={[colors.primary.cyan, colors.primary.blue, colors.primary.purple]}
+          colors={[colors.primary.purple, colors.primary.violet, colors.accent.fuchsia]}
           start={{ x: 0.2, y: 0.2 }}
           end={{ x: 0.8, y: 0.8 }}
           style={[styles.gradient, { borderRadius: size / 2 }]}
