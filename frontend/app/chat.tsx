@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,73 +7,132 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import ChatBubble from '../components/ChatBubble';
 import GlassInput from '../components/GlassInput';
 import { colors, spacing, typography } from '../constants/theme';
 
 interface Message {
   id: string;
-  text: string;
-  isAI: boolean;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
 }
-
-const initialMessages: Message[] = [
-  {
-    id: '1',
-    text: 'Hello! I\'m your AI assistant. How can I help you today?',
-    isAI: true,
-  },
-  {
-    id: '2',
-    text: 'Can you tell me about the latest AI trends?',
-    isAI: false,
-  },
-  {
-    id: '3',
-    text: 'Of course! The latest AI trends include advancements in large language models, generative AI for creative content, and improved natural language understanding. These technologies are transforming industries from healthcare to entertainment.',
-    isAI: true,
-  },
-];
 
 export default function ChatScreen() {
   const router = useRouter();
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const scrollViewRef = React.useRef<ScrollView>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
 
-  const handleSend = () => {
-    if (input.trim()) {
-      // Add user message
-      const userMessage: Message = {
-        id: Date.now().toString(),
-        text: input,
-        isAI: false,
+  const BACKEND_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:8001';
+
+  // Initial AI greeting
+  useEffect(() => {
+    const greeting: Message = {
+      id: '1',
+      role: 'assistant',
+      content: 'Hello. I\'m here to listen and support you. What\'s on your mind today?',
+      timestamp: new Date().toISOString(),
+    };
+    setMessages([greeting]);
+  }, []);
+
+  const handleSend = async () => {
+    if (!input.trim() || isLoading) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: input.trim(),
+      timestamp: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
+
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/chat/send`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: userMessage.content,
+          conversation_id: conversationId,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to get response');
+      }
+
+      const data = await response.json();
+
+      if (!conversationId) {
+        setConversationId(data.conversation_id);
+      }
+
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: data.response,
+        timestamp: data.timestamp,
       };
-      setMessages((prev) => [...prev, userMessage]);
 
-      // Simulate AI response
-      setTimeout(() => {
-        const aiMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          text: 'I understand your question. This is a UI demo, so I\'m showing a mock response. In a production app, this would connect to a real AI service.',
-          isAI: true,
-        };
-        setMessages((prev) => [...prev, aiMessage]);
-        setTimeout(() => {
-          scrollViewRef.current?.scrollToEnd({ animated: true });
-        }, 100);
-      }, 1000);
+      setMessages((prev) => [...prev, aiMessage]);
 
-      setInput('');
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      
+      let errorMessage = 'Unable to connect to AI service. ';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('not configured')) {
+          errorMessage = 'AI service is not configured yet. Please add your GROQ_API_KEY to the backend environment variables.';
+        } else {
+          errorMessage += error.message;
+        }
+      }
+
+      Alert.alert(
+        'Connection Error',
+        errorMessage,
+        [{ text: 'OK', style: 'default' }]
+      );
+
+      // Remove the user message if API call failed
+      setMessages((prev) => prev.filter((msg) => msg.id !== userMessage.id));
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const handleCopy = (text: string) => {
+    // In a real app, you'd use Clipboard API here
+    console.log('Copied:', text);
+  };
+
+  const handleLike = () => {
+    console.log('Liked');
   };
 
   return (
