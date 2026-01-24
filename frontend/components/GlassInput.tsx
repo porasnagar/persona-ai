@@ -46,7 +46,7 @@ export default function GlassInput({
           <Ionicons
             name="send"
             size={20}
-            color={value.length > 0 ? colors.primary.cyan : colors.text.placeholder}
+            color={value.length > 0 ? colors.primary.purple : colors.text.placeholder}
           />
         </TouchableOpacity>
       )}
