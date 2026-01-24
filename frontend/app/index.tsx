@@ -37,17 +37,17 @@ export default function WelcomeScreen() {
         {/* Bottom Actions */}
         <View style={styles.actionsContainer}>
           <GlassButton
-            title="Get Started"
+            title="Continue as Guest"
             onPress={() => router.push('/home')}
             variant="primary"
             style={styles.primaryButton}
           />
           <TouchableOpacity
-            style={styles.signInButton}
+            style={styles.secondaryButton}
             onPress={() => console.log('Sign in pressed')}
             activeOpacity={0.7}
           >
-            <Text style={styles.signInText}>Sign in</Text>
+            <Text style={styles.secondaryButtonText}>Sign In</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
