@@ -272,7 +272,7 @@ export default function ChatScreen() {
             {isLoading && (
               <View style={styles.loadingContainer}>
                 <View style={styles.loadingBubble}>
-                  <ActivityIndicator size="small" color={colors.primary.cyan} />
+                  <ActivityIndicator size="small" color={colors.primary.purple} />
                   <Text style={styles.loadingText}>Thinking...</Text>
                 </View>
               </View>
