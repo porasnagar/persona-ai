@@ -75,8 +75,8 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: colors.primary.cyan,
-    opacity: 0.8,
+    backgroundColor: colors.primary.purple,
+    opacity: 0.9,
   },
   messageContainer: {
     flex: 1,
