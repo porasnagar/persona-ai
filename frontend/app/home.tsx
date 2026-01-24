@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.xxxl,
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing.md,
   },
   orbContainer: {
     alignItems: 'center',
