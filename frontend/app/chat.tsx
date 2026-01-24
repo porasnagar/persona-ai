@@ -52,7 +52,9 @@ export default function ChatScreen() {
   const [showPersonaToggle, setShowPersonaToggle] = useState(true);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const BACKEND_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:8001';
+  const BACKEND_URL = typeof window !== 'undefined' && window.location.origin 
+    ? window.location.origin 
+    : Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:8001';
 
   // Initialize new conversation with selected persona
   useEffect(() => {
