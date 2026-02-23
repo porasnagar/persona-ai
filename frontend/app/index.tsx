@@ -16,7 +16,7 @@ export default function WelcomeScreen() {
       style={styles.container}
     >
       <SafeAreaView style={styles.content}>
-        {/* Top spacer for balance */}
+        {/* Top spacer */}
         <View style={styles.topSpacer} />
 
         {/* Centered Glowing Orb */}

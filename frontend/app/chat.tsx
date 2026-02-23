@@ -12,13 +12,13 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import Constants from 'expo-constants';
+import * as Speech from 'expo-speech';
 import ChatBubble from '../components/ChatBubble';
 import GlassInput from '../components/GlassInput';
-import PersonaToggle from '../components/PersonaToggle';
 import { colors, spacing, typography } from '../constants/theme';
+import { useChatStore } from '../store/chatStore';
 
 interface Message {
   id: string;
@@ -28,97 +28,112 @@ interface Message {
   is_introduction?: boolean;
 }
 
-interface Persona {
-  id: string;
-  name: string;
-  description: string;
-  introduction: string;
-}
+const BACKEND_URL = 'https://persona-ai-yev2.onrender.com';
 
-const PERSONAS: Persona[] = [
-  { id: 'AURA', name: 'AURA', description: 'Emotional Well-being', introduction: '' },
-  { id: 'SERENE', name: 'SERENE', description: 'Mindfulness & Calm', introduction: '' },
-  { id: 'NOVA', name: 'NOVA', description: 'Motivation & Growth', introduction: '' },
-  { id: 'REFLECT', name: 'REFLECT', description: 'Self-Reflection', introduction: '' },
-];
+const PERSONA_INFO: Record<string, { name: string; icon: string }> = {
+  MENTOR: { name: 'Mentor', icon: '🧙' },
+  TEACHER: { name: 'Teacher', icon: '📚' },
+  MOTIVATOR: { name: 'Motivator', icon: '⚡' },
+  LISTENER: { name: 'Listener', icon: '💙' },
+  PHILOSOPHER: { name: 'Philosopher', icon: '🌟' },
+  YOGA: { name: 'Yoga Guide', icon: '🧘' },
+  CUSTOM: { name: 'Custom', icon: '✨' },
+};
 
 export default function ChatScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
-  const [activePersona, setActivePersona] = useState('AURA');
-  const [showPersonaToggle, setShowPersonaToggle] = useState(true);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const BACKEND_URL = typeof window !== 'undefined' && window.location.origin 
-    ? window.location.origin 
-    : Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:8001';
+  const { 
+    selectedPersona, 
+    customPrompt, 
+    isVoiceEnabled, 
+    toggleVoice,
+    conversations,
+    saveConversation,
+    addMessage: addMessageToStore,
+    activeConversationId,
+    setActiveConversation,
+  } = useChatStore();
 
-  // Initialize new conversation with selected persona
+  const personaInfo = PERSONA_INFO[selectedPersona] || PERSONA_INFO.MENTOR;
+
   useEffect(() => {
-    initializeConversation(activePersona);
-  }, []);
+    initializeChat();
+  }, [selectedPersona]);
 
-  const initializeConversation = async (persona: string) => {
-    try {
-      const response = await fetch(`${BACKEND_URL}/api/chat/new?persona=${persona}`);
-      const data = await response.json();
-      
-      setConversationId(data.conversation_id);
-      
-      // Add introduction message
-      const introMessage: Message = {
-        id: '1',
-        role: 'assistant',
-        content: data.introduction,
-        timestamp: new Date().toISOString(),
-        is_introduction: true,
-      };
-      setMessages([introMessage]);
-    } catch (error) {
-      console.error('Error initializing conversation:', error);
-      // Fallback introduction
-      const introMessage: Message = {
-        id: '1',
-        role: 'assistant',
-        content: `I'm ${persona}. How can I support you today?`,
-        timestamp: new Date().toISOString(),
-        is_introduction: true,
-      };
-      setMessages([introMessage]);
+  // Speak AI responses if voice enabled
+  useEffect(() => {
+    if (isVoiceEnabled && messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.role === 'assistant' && !lastMessage.is_introduction) {
+        Speech.speak(lastMessage.content, {
+          language: 'en',
+          pitch: 1.0,
+          rate: 0.9,
+        });
+      }
     }
-  };
+  }, [messages, isVoiceEnabled]);
 
-  const handlePersonaChange = (newPersona: string) => {
-    if (newPersona === activePersona) return;
+  const initializeChat = async () => {
+    try {
+      // Check if we have an active conversation in store
+      if (activeConversationId) {
+        const existingConv = conversations.find(c => c.id === activeConversationId);
+        if (existingConv) {
+          setMessages(existingConv.messages);
+          setConversationId(existingConv.id);
+          return;
+        }
+      }
 
-    // If there are messages beyond introduction, confirm persona change
-    const hasConversation = messages.filter(m => !m.is_introduction && m.role === 'user').length > 0;
-    
-    if (hasConversation) {
-      Alert.alert(
-        'Switch Persona',
-        'Changing personas will start a new conversation. Continue?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Start New Chat',
-            onPress: () => {
-              setActivePersona(newPersona);
-              setMessages([]);
-              setConversationId(null);
-              initializeConversation(newPersona);
-            },
-          },
-        ]
+      // Create new conversation
+      const response = await fetch(
+        `${BACKEND_URL}/api/chat/new?persona=${selectedPersona}${
+          selectedPersona === 'CUSTOM' && customPrompt ? `&custom_prompt=${encodeURIComponent(customPrompt)}` : ''
+        }`
       );
-    } else {
-      setActivePersona(newPersona);
-      setMessages([]);
-      setConversationId(null);
-      initializeConversation(newPersona);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setConversationId(data.conversation_id);
+        setActiveConversation(data.conversation_id);
+        
+        const introMessage: Message = {
+          id: '1',
+          role: 'assistant',
+          content: data.introduction,
+          timestamp: new Date().toISOString(),
+          is_introduction: true,
+        };
+        setMessages([introMessage]);
+        
+        // Save to local store
+        saveConversation({
+          id: data.conversation_id,
+          persona: selectedPersona,
+          messages: [introMessage],
+          customPrompt: customPrompt || undefined,
+          lastUpdated: new Date().toISOString(),
+        });
+      }
+    } catch (error) {
+      console.error('Error initializing chat:', error);
+      const fallbackIntro: Message = {
+        id: '1',
+        role: 'assistant',
+        content: `I'm your ${personaInfo.name}. How can I help you today?`,
+        timestamp: new Date().toISOString(),
+        is_introduction: true,
+      };
+      setMessages([fallbackIntro]);
     }
   };
 
@@ -135,7 +150,6 @@ export default function ChatScreen() {
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
-    setShowPersonaToggle(false); // Hide toggle once conversation starts
 
     setTimeout(() => {
       scrollViewRef.current?.scrollToEnd({ animated: true });
@@ -144,25 +158,24 @@ export default function ChatScreen() {
     try {
       const response = await fetch(`${BACKEND_URL}/api/chat/send`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: userMessage.content,
           conversation_id: conversationId,
-          persona: activePersona,
+          persona: selectedPersona,
+          custom_prompt: selectedPersona === 'CUSTOM' ? customPrompt : undefined,
         }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to get response');
+        throw new Error('Failed to get response');
       }
 
       const data = await response.json();
 
       if (!conversationId) {
         setConversationId(data.conversation_id);
+        setActiveConversation(data.conversation_id);
       }
 
       const aiMessage: Message = {
@@ -173,30 +186,23 @@ export default function ChatScreen() {
       };
 
       setMessages((prev) => [...prev, aiMessage]);
+      
+      // Save to store
+      const updatedMessages = [...messages, userMessage, aiMessage];
+      saveConversation({
+        id: conversationId || data.conversation_id,
+        persona: selectedPersona,
+        messages: updatedMessages,
+        customPrompt: customPrompt || undefined,
+        lastUpdated: new Date().toISOString(),
+      });
 
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
     } catch (error) {
       console.error('Error sending message:', error);
-      
-      let errorMessage = 'Unable to connect to AI service. ';
-      
-      if (error instanceof Error) {
-        if (error.message.includes('not configured')) {
-          errorMessage = 'AI service is not configured yet. Please add your GROQ_API_KEY to the backend environment variables.';
-        } else {
-          errorMessage += error.message;
-        }
-      }
-
-      Alert.alert(
-        'Connection Error',
-        errorMessage,
-        [{ text: 'OK', style: 'default' }]
-      );
-
-      // Remove the user message if API call failed
+      Alert.alert('Error', 'Unable to get AI response. Please check your connection.');
       setMessages((prev) => prev.filter((msg) => msg.id !== userMessage.id));
     } finally {
       setIsLoading(false);
@@ -204,11 +210,15 @@ export default function ChatScreen() {
   };
 
   const handleCopy = (text: string) => {
-    console.log('Copied:', text);
+    Alert.alert('Copied', 'Message copied to clipboard');
   };
 
-  const handleLike = () => {
-    console.log('Liked');
+  const handleVoiceToggle = () => {
+    toggleVoice();
+    Alert.alert(
+      'Voice Response',
+      isVoiceEnabled ? 'Voice responses disabled' : 'Voice responses enabled'
+    );
   };
 
   return (
@@ -227,27 +237,24 @@ export default function ChatScreen() {
             <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
           </TouchableOpacity>
           <View style={styles.headerCenter}>
-            <View style={styles.headerAvatar}>
-              <View style={styles.headerAvatarInner} />
-            </View>
+            <Text style={styles.headerIcon}>{personaInfo.icon}</Text>
             <View>
-              <Text style={styles.headerTitle}>Calm Companion</Text>
-              <Text style={styles.headerSubtitle}>{activePersona}</Text>
+              <Text style={styles.headerTitle}>{personaInfo.name}</Text>
+              <Text style={styles.headerSubtitle}>AI Companion</Text>
             </View>
           </View>
-          <View style={styles.headerRight} />
-        </View>
-
-        {/* Persona Toggle - Shows only at conversation start */}
-        {showPersonaToggle && (
-          <View style={styles.personaContainer}>
-            <PersonaToggle
-              personas={PERSONAS}
-              activePersona={activePersona}
-              onPersonaChange={handlePersonaChange}
+          <TouchableOpacity
+            style={styles.voiceButton}
+            onPress={handleVoiceToggle}
+            activeOpacity={0.7}
+          >
+            <Ionicons 
+              name={isVoiceEnabled ? "volume-high" : "volume-mute"} 
+              size={22} 
+              color={isVoiceEnabled ? colors.primary.purple : colors.text.tertiary} 
             />
-          </View>
-        )}
+          </TouchableOpacity>
+        </View>
 
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -268,7 +275,7 @@ export default function ChatScreen() {
                 isAI={message.role === 'assistant'}
                 showActions={message.role === 'assistant' && index === messages.length - 1 && !isLoading}
                 onCopy={() => handleCopy(message.content)}
-                onLike={handleLike}
+                onLike={() => console.log('Liked')}
               />
             ))}
             {isLoading && (
@@ -324,29 +331,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: spacing.sm,
   },
-  headerAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.glass.light,
-    borderWidth: 1,
-    borderColor: colors.ai.glowSoft,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.sm,
-  },
-  headerAvatarInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: colors.primary.purple,
-    opacity: 0.9,
+  headerIcon: {
+    fontSize: 28,
   },
   headerTitle: {
     ...typography.body,
     color: colors.text.primary,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   headerSubtitle: {
     ...typography.small,
@@ -354,15 +347,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 2,
   },
-  headerRight: {
+  voiceButton: {
     width: 44,
-  },
-  personaContainer: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    height: 44,
+    justifyContent: 'center',
     alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: colors.glass.borderSoft,
   },
   keyboardView: {
     flex: 1,
