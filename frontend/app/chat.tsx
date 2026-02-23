@@ -306,7 +306,7 @@ export default function ChatScreen() {
 
               <View style={styles.inputContainer}>
                 <GlassInput
-                  placeholder=\"Share your thoughts...\"
+                  placeholder="Share your thoughts..."
                   value={input}
                   onChangeText={setInput}
                   onSend={handleSend}
