@@ -1,28 +1,60 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Modal, TextInput as RNTextInput, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import GlowingOrb from '../components/GlowingOrb';
 import GlassInput from '../components/GlassInput';
-import TopicChip from '../components/TopicChip';
-import { colors, spacing, typography } from '../constants/theme';
-
-const topics = ['Calm', 'Reflect', 'Focus', 'Gratitude'];
+import PersonaSelector from '../components/PersonaSelector';
+import GlassButton from '../components/GlassButton';
+import { colors, spacing, typography, borderRadius } from '../constants/theme';
+import { useChatStore } from '../store/chatStore';
 
 export default function HomeScreen() {
   const router = useRouter();
   const [input, setInput] = useState('');
+  const [showCustomModal, setShowCustomModal] = useState(false);
+  const [customName, setCustomName] = useState('');
+  const [customDescription, setCustomDescription] = useState('');
+  
+  const { selectedPersona, setSelectedPersona, setCustomPrompt, loadConversations } = useChatStore();
+
+  useEffect(() => {
+    loadConversations();
+  }, []);
 
   const handleSend = () => {
     if (input.trim()) {
-      router.push('/chat');
+      router.push({ pathname: '/chat', params: { initialMessage: input.trim() } });
+      setInput('');
     }
   };
 
-  const handleTopicPress = (topic: string) => {
-    setInput(topic);
-    setTimeout(() => router.push('/chat'), 200);
+  const handlePersonaSelect = (personaId: string) => {
+    setSelectedPersona(personaId);
+    // Navigate to chat with selected persona
+    router.push('/chat');
+  };
+
+  const handleCustomPersona = () => {
+    setShowCustomModal(true);
+  };
+
+  const saveCustomPersona = () => {
+    if (!customName.trim() || !customDescription.trim()) {
+      Alert.alert('Required Fields', 'Please enter both name and description');
+      return;
+    }
+    
+    const prompt = `You are ${customName}. ${customDescription}`;
+    setCustomPrompt(prompt);
+    setSelectedPersona('CUSTOM');
+    setShowCustomModal(false);
+    setCustomName('');
+    setCustomDescription('');
+    
+    // Navigate to chat
+    router.push('/chat');
   };
 
   return (
@@ -41,32 +73,30 @@ export default function HomeScreen() {
           >
             {/* Large Glowing Orb */}
             <View style={styles.orbContainer}>
-              <GlowingOrb size={300} />
+              <GlowingOrb size={280} />
             </View>
 
             {/* Prompt Text */}
             <View style={styles.promptContainer}>
-              <Text style={styles.promptText}>I'm here.</Text>
-              <Text style={styles.promptText}>Take a breath.</Text>
-              <Text style={styles.promptSubtext}>or choose a path below</Text>
+              <Text style={styles.promptText}>Choose Your</Text>
+              <Text style={styles.promptText}>Companion</Text>
+              <Text style={styles.promptSubtext}>Select a guide for your journey</Text>
             </View>
 
-            {/* Topic Chips */}
-            <View style={styles.topicsContainer}>
-              {topics.map((topic) => (
-                <TopicChip
-                  key={topic}
-                  title={topic}
-                  onPress={() => handleTopicPress(topic)}
-                />
-              ))}
+            {/* Persona Selector */}
+            <View style={styles.personaContainer}>
+              <PersonaSelector
+                selectedPersona={selectedPersona}
+                onSelectPersona={handlePersonaSelect}
+                onCustomPress={handleCustomPersona}
+              />
             </View>
           </ScrollView>
 
           {/* Bottom Input Bar */}
           <View style={styles.inputContainer}>
             <GlassInput
-              placeholder="Share what's on your mind..."
+              placeholder="Start a conversation..."
               value={input}
               onChangeText={setInput}
               onSend={handleSend}
@@ -74,6 +104,57 @@ export default function HomeScreen() {
             />
           </View>
         </KeyboardAvoidingView>
+
+        {/* Custom Persona Modal */}
+        <Modal
+          visible={showCustomModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowCustomModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Create Custom Persona</Text>
+              
+              <RNTextInput
+                style={styles.modalInput}
+                placeholder="Persona Name (e.g., Life Coach)"
+                placeholderTextColor={colors.text.placeholder}
+                value={customName}
+                onChangeText={setCustomName}
+              />
+              
+              <RNTextInput
+                style={[styles.modalInput, styles.modalTextArea]}
+                placeholder="Describe personality and style..."
+                placeholderTextColor={colors.text.placeholder}
+                value={customDescription}
+                onChangeText={setCustomDescription}
+                multiline
+                numberOfLines={4}
+              />
+              
+              <View style={styles.modalButtons}>
+                <GlassButton
+                  title="Cancel"
+                  onPress={() => {
+                    setShowCustomModal(false);
+                    setCustomName('');
+                    setCustomDescription('');
+                  }}
+                  variant="secondary"
+                  style={styles.modalButton}
+                />
+                <GlassButton
+                  title="Create"
+                  onPress={saveCustomPersona}
+                  variant="primary"
+                  style={styles.modalButton}
+                />
+              </View>
+            </View>
+          </View>
+        </Modal>
       </SafeAreaView>
     </LinearGradient>
   );
@@ -101,7 +182,7 @@ const styles = StyleSheet.create({
   promptContainer: {
     alignItems: 'center',
     marginTop: spacing.xl,
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
   },
   promptText: {
     ...typography.title,
@@ -115,15 +196,57 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: spacing.md,
   },
-  topicsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
+  personaContainer: {
     marginTop: spacing.lg,
+    marginBottom: spacing.xl,
   },
   inputContainer: {
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.lg,
     paddingTop: spacing.md,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 400,
+    backgroundColor: colors.background.mid,
+    borderRadius: borderRadius.xl,
+    padding: spacing.xl,
+    borderWidth: 1,
+    borderColor: colors.glass.border,
+  },
+  modalTitle: {
+    ...typography.title,
+    color: colors.text.primary,
+    marginBottom: spacing.lg,
+    textAlign: 'center',
+  },
+  modalInput: {
+    backgroundColor: colors.glass.light,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.glass.borderSoft,
+    padding: spacing.md,
+    color: colors.text.primary,
+    marginBottom: spacing.md,
+    ...typography.body,
+  },
+  modalTextArea: {
+    minHeight: 100,
+    textAlignVertical: 'top',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.md,
+  },
+  modalButton: {
+    flex: 1,
   },
 });
