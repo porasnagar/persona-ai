@@ -28,10 +28,6 @@ export default function WelcomeScreen() {
         <View style={styles.titleContainer}>
           <Text style={styles.title}>Your Calm AI</Text>
           <Text style={styles.title}>Companion</Text>
-          <Text style={styles.subtitle}>
-            Find clarity, peace, and happiness{"\n"}
-            through mindful conversation
-          </Text>
         </View>
 
         {/* Bottom Actions */}
