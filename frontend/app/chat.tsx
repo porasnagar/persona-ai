@@ -543,11 +543,19 @@ export default function ChatScreen() {
   );
 }
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
   content: {
+    flex: 1,
+  },
+  mainContainer: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  chatArea: {
     flex: 1,
   },
   header: {
@@ -559,7 +567,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.glass.borderSoft,
   },
-  backButton: {
+  menuButton: {
     width: 44,
     height: 44,
     justifyContent: 'center',
