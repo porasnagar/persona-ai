@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Modal, TextInput as RNTextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Modal, TextInput as RNTextInput, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import GlowingOrb from '../components/GlowingOrb';
-import GlassInput from '../components/GlassInput';
 import PersonaSelector from '../components/PersonaSelector';
 import GlassButton from '../components/GlassButton';
 import { colors, spacing, typography, borderRadius } from '../constants/theme';
@@ -12,7 +11,6 @@ import { useChatStore } from '../store/chatStore';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [input, setInput] = useState('');
   const [showCustomModal, setShowCustomModal] = useState(false);
   const [customName, setCustomName] = useState('');
   const [customDescription, setCustomDescription] = useState('');
@@ -23,16 +21,8 @@ export default function HomeScreen() {
     loadConversations();
   }, []);
 
-  const handleSend = () => {
-    if (input.trim()) {
-      router.push({ pathname: '/chat', params: { initialMessage: input.trim() } });
-      setInput('');
-    }
-  };
-
   const handlePersonaSelect = (personaId: string) => {
     setSelectedPersona(personaId);
-    // Navigate to chat with selected persona
     router.push('/chat');
   };
 
@@ -52,8 +42,6 @@ export default function HomeScreen() {
     setShowCustomModal(false);
     setCustomName('');
     setCustomDescription('');
-    
-    // Navigate to chat
     router.push('/chat');
   };
 
@@ -63,47 +51,31 @@ export default function HomeScreen() {
       style={styles.container}
     >
       <SafeAreaView style={styles.content} edges={['top']}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.keyboardView}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
         >
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Large Glowing Orb */}
-            <View style={styles.orbContainer}>
-              <GlowingOrb size={280} />
-            </View>
+          {/* Large Glowing Orb */}
+          <View style={styles.orbContainer}>
+            <GlowingOrb size={280} />
+          </View>
 
-            {/* Prompt Text */}
-            <View style={styles.promptContainer}>
-              <Text style={styles.promptText}>Choose Your</Text>
-              <Text style={styles.promptText}>Companion</Text>
-              <Text style={styles.promptSubtext}>Select a guide for your journey</Text>
-            </View>
+          {/* Prompt Text */}
+          <View style={styles.promptContainer}>
+            <Text style={styles.promptText}>Choose Your</Text>
+            <Text style={styles.promptText}>Companion</Text>
+            <Text style={styles.promptSubtext}>Select a guide for your journey</Text>
+          </View>
 
-            {/* Persona Selector */}
-            <View style={styles.personaContainer}>
-              <PersonaSelector
-                selectedPersona={selectedPersona}
-                onSelectPersona={handlePersonaSelect}
-                onCustomPress={handleCustomPersona}
-              />
-            </View>
-          </ScrollView>
-
-          {/* Bottom Input Bar */}
-          <View style={styles.inputContainer}>
-            <GlassInput
-              placeholder="Start a conversation..."
-              value={input}
-              onChangeText={setInput}
-              onSend={handleSend}
-              showMic
+          {/* Persona Selector */}
+          <View style={styles.personaContainer}>
+            <PersonaSelector
+              selectedPersona={selectedPersona}
+              onSelectPersona={handlePersonaSelect}
+              onCustomPress={handleCustomPersona}
             />
           </View>
-        </KeyboardAvoidingView>
+        </ScrollView>
 
         {/* Custom Persona Modal */}
         <Modal
@@ -167,13 +139,10 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  keyboardView: {
-    flex: 1,
-  },
   scrollContent: {
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.xxxl,
-    paddingBottom: spacing.md,
+    paddingBottom: spacing.xl,
   },
   orbContainer: {
     alignItems: 'center',
@@ -199,11 +168,6 @@ const styles = StyleSheet.create({
   personaContainer: {
     marginTop: spacing.lg,
     marginBottom: spacing.xl,
-  },
-  inputContainer: {
-    paddingHorizontal: spacing.xl,
-    paddingBottom: spacing.lg,
-    paddingTop: spacing.md,
   },
   modalOverlay: {
     flex: 1,
