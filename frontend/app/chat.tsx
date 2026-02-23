@@ -249,7 +249,7 @@ export default function ChatScreen() {
                 onPress={() => setShowSidebar(!showSidebar)}
                 activeOpacity={0.7}
               >
-                <Ionicons name=\"menu\" size={24} color={colors.text.primary} />
+                <Ionicons name="menu" size={24} color={colors.text.primary} />
               </TouchableOpacity>
               <View style={styles.headerCenter}>
                 <Text style={styles.headerIcon}>{personaInfo.icon}</Text>
@@ -267,7 +267,7 @@ export default function ChatScreen() {
                 activeOpacity={0.7}
               >
                 <Ionicons 
-                  name={isVoiceEnabled ? \"volume-high\" : \"volume-mute\"} 
+                  name={isVoiceEnabled ? "volume-high" : "volume-mute"} 
                   size={22} 
                   color={isVoiceEnabled ? colors.primary.purple : colors.text.tertiary} 
                 />
