@@ -11,12 +11,12 @@ interface ChatBubbleProps {
   onCopy?: () => void;
 }
 
-export default function ChatBubble({ 
-  message, 
-  isAI, 
+export default function ChatBubble({
+  message,
+  isAI,
   showActions = false,
   onLike,
-  onCopy 
+  onCopy
 }: ChatBubbleProps) {
   return (
     <View style={[styles.container, isAI ? styles.aiContainer : styles.userContainer]}>
@@ -50,11 +50,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   aiContainer: {
-    paddingRight: spacing.xl,
+    paddingRight: spacing.sm,
   },
   userContainer: {
     justifyContent: 'flex-end',
-    paddingLeft: spacing.xl,
+    paddingLeft: spacing.sm,
   },
   aiAvatar: {
     width: 36,

@@ -326,9 +326,9 @@ async def root():
     }
 @app.get("/health")
 async def health():
-    """ Health Check endpoint for uptime monitoring"""
+    """Health check endpoint for uptime monitoring"""
     return {"status": "ok"}
-    
+
 @app.get("/api/personas")
 async def get_personas():
     """Get all available personas"""

@@ -60,15 +60,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
   },
   topSpacer: {
-    flex: 0.3,
+    flex: 0.15,
   },
   orbContainer: {
     alignItems: 'center',
-    marginVertical: spacing.xxl,
+    marginVertical: spacing.lg,
   },
   titleContainer: {
     alignItems: 'center',
-    marginTop: spacing.xl,
+    marginTop: spacing.sm,
     paddingHorizontal: spacing.lg,
   },
   title: {

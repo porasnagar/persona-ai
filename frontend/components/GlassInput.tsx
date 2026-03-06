@@ -8,6 +8,7 @@ interface GlassInputProps {
   value: string;
   onChangeText: (text: string) => void;
   onSend?: () => void;
+  onMic?: () => void;
   showMic?: boolean;
   style?: ViewStyle;
 }
@@ -17,6 +18,7 @@ export default function GlassInput({
   value,
   onChangeText,
   onSend,
+  onMic,
   showMic = false,
   style,
 }: GlassInputProps) {
@@ -44,7 +46,7 @@ export default function GlassInput({
   return (
     <View style={[styles.container, style]}>
       {showMic && (
-        <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.iconButton} activeOpacity={0.7} onPress={onMic}>
           <Ionicons name="mic-outline" size={22} color={colors.text.tertiary} />
         </TouchableOpacity>
       )}
@@ -115,7 +117,6 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     justifyContent: 'center',
     alignItems: 'center',
-    transition: 'all 0.2s ease',
   },
   sendButtonActive: {
     backgroundColor: colors.glass.medium,

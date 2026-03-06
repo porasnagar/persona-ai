@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '../constants/theme';
@@ -8,13 +8,13 @@ interface GlowingOrbProps {
 }
 
 export default function GlowingOrb({ size = 200 }: GlowingOrbProps) {
-  const floatAnim = new Animated.Value(0);
-  const pulseAnim = new Animated.Value(1);
-  const glowAnim = new Animated.Value(0.6);
+  const floatAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const glowAnim = useRef(new Animated.Value(0.6)).current;
 
   useEffect(() => {
     // Slower, calmer floating animation
-    Animated.loop(
+    const floatLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(floatAnim, {
           toValue: 1,
@@ -27,10 +27,11 @@ export default function GlowingOrb({ size = 200 }: GlowingOrbProps) {
           useNativeDriver: true,
         }),
       ])
-    ).start();
+    );
+    floatLoop.start();
 
     // Gentle pulse animation
-    Animated.loop(
+    const pulseLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
           toValue: 1.08,
@@ -43,24 +44,32 @@ export default function GlowingOrb({ size = 200 }: GlowingOrbProps) {
           useNativeDriver: true,
         }),
       ])
-    ).start();
+    );
+    pulseLoop.start();
 
     // Soft glow pulse
-    Animated.loop(
+    const glowLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(glowAnim, {
           toValue: 1,
           duration: 2500,
-          useNativeDriver: false,
+          useNativeDriver: true,
         }),
         Animated.timing(glowAnim, {
           toValue: 0.6,
           duration: 2500,
-          useNativeDriver: false,
+          useNativeDriver: true,
         }),
       ])
-    ).start();
-  }, []);
+    );
+    glowLoop.start();
+
+    return () => {
+      floatLoop.stop();
+      pulseLoop.stop();
+      glowLoop.stop();
+    };
+  }, [floatAnim, pulseAnim, glowAnim]);
 
   const translateY = floatAnim.interpolate({
     inputRange: [0, 1],
