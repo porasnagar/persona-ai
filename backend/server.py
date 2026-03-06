@@ -324,7 +324,11 @@ async def root():
         "message": "Backend is ready" if groq_client else "Please configure GROQ_API_KEY",
         "personas": list(PERSONAS.keys())
     }
-
+@app.get("/health")
+async def health():
+    """ Health Check endpoint for uptime monitoring"""
+    return {"status": "ok"}
+    
 @app.get("/api/personas")
 async def get_personas():
     """Get all available personas"""
